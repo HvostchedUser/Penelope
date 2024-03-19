@@ -31,6 +31,7 @@ synthesizer = SpeechSynthesizer()
 
 def on_transcription_callback(text):
     text = text.replace("penny", "Penni")
+    text = text.replace("penelope", "Penelope")
     text = text.replace("Benny", "Penni")
     text = text.replace("Penny", "Penni")
     text = text.replace("Fanny", "Penni")
