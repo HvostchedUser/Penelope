@@ -54,7 +54,7 @@ class PenelopeSystem:
         self.turn_user = "<|im_end|>\n<|im_start|>user\n"
         self.turn_llm = "<|im_end|>\n<|im_start|>assistant\n"
 
-        self.turn_thought_llm = "\n‣‣‣\n<|im_end|>\n<|im_start|>assistant\nAn interruption by thought engine: \n"
+        self.turn_thought_llm = "\n‣‣‣⬳\n<|im_end|>\n<|im_start|>assistant\nAn interruption by thought engine: \n"
         self.turn_end_thought_llm = "<|im_end|>\n<|im_start|>assistant\nContinuation: \n"
 
         self.turn_user_for_thoughts = "\nHuman says: \n"
@@ -176,7 +176,7 @@ class PenelopeSystem:
             generator = self.model(
                 "".join(self.chat_history) + response,
                 max_tokens=8128,
-                stop=[],
+                stop=["<|im_end|>"],
                 stream=True,
                 temperature=max(0.0, temp),
                 top_p=0.9,  # 999999,  # 0.9,
