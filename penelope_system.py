@@ -189,7 +189,7 @@ class PenelopeSystem:
                 if ends_with_cycle(response):
                     yield from self.think_pause(response)
                     response = ""
-                    thought_cooldown = 3
+                    thought_cooldown = 4
                     ponder = True
                     ponders_in_row += 1
                     break
