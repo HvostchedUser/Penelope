@@ -141,7 +141,7 @@ class PenelopeSystem:
             token_str = output["choices"][0][
                 "text"]
 
-            yield token_str, 0, True
+            yield token_str, 0, True, 0
             reasoning_text += token_str
             print(token_str, end="", flush=True)
         print()
@@ -235,10 +235,10 @@ class PenelopeSystem:
                         and not response.endswith("?") \
                         and not response.endswith("!"):
                     # print(response)
-                    yield " ", ponders_in_row / max_ponders, False
+                    yield " ", ponders_in_row / max_ponders, False, tok_logprob
                 response += token_str
                 # print(response)
-                yield token_str, ponders_in_row / max_ponders, False
+                yield token_str, ponders_in_row / max_ponders, False, tok_logprob
                 ponders_in_row = 0
         print()
         self.chat_history += [response.rstrip()]

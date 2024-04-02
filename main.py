@@ -52,7 +52,7 @@ def on_transcription_callback(text):
     sounds.enqueue_sound("gentle_thought")
     penelope_system.add_user_message(text)
     text_queue = ""
-    for token, ponder_k, is_thinking in penelope_system.generate_response():
+    for token, ponder_k, is_thinking, logprob in penelope_system.generate_response():
         if not sounds.is_playing():
             if not is_thinking:
                 sounds.enqueue_sound("gentle_thought")
