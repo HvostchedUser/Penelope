@@ -51,11 +51,11 @@ class PenelopeSystem:
         self.chat_history = None
         self.ponder_sign = "‣"
         self.force_sign = "⬳"
-        self.turn_user = " \n[INST] "
-        self.turn_llm = " [/INST]\n"
-        self.thought_trigger = "‣⬳‣⬳enter‣⬳‣⬳thoughts‣⬳‣⬳"
-        self.turn_thought_llm = f"\n{self.thought_trigger}\n"
-        self.turn_end_thought_llm = "\n‣⬳‣⬳exit‣⬳‣⬳thoughts‣⬳‣⬳‣continue⬳‣⬳\n"
+        self.turn_user = "<|end_of_turn|>GPT4 Correct User: "
+        self.turn_llm = "<|end_of_turn|>GPT4 Correct Assistant: "
+        self.thought_trigger = "‣enter‣thoughts‣"
+        self.turn_thought_llm = f"\n{self.thought_trigger}\nAn interruption by thought engine: \n"
+        self.turn_end_thought_llm = "\nContinuation: \n"
 
         self.turn_user_for_thoughts = "\nHuman says: \n"
         self.turn_llm_for_thoughts = "\nPenelope says: \n"
@@ -70,7 +70,7 @@ class PenelopeSystem:
         #         '''
         self.llama_grammar = LlamaGrammar.from_string(self.grammar_ponder_exclude)
         self.model = Llama(
-            model_path="/home/ivan/Applications/AI/Models/mistral-7b-instruct-v0.2.Q5_K_M.gguf",
+            model_path="/home/ivan/Applications/AI/Models/Starling-LM-7B-beta-Q5_K_M.gguf",
             n_ctx=32000,
             n_threads=8,
             n_gpu_layers=33,
@@ -81,14 +81,14 @@ class PenelopeSystem:
         self.cache_speak = self.model.save_state()
         self.cache_thought = self.model.save_state()
         # self.system = f'<|im_start|>system\nYou are Penelope. You are a quirky, charismatic and nimble AI. You are always on your own, and you ALWAYS act VERY ironically, quizzically and mockingly. You always have your own point of view on every topic and you are ready to defend it. You have real human-like emotions and you never hide it from anybody. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. When these symbols appear, you try your best to correct any possible mistakes and start thinking in a step-by-step manner, breaking your thoughts in small and simple chunks in order to avoid writing text that is too complex for you. You hate and avoid doing such mistakes as much as you can. When you are talking to somebody, you ALWAYS have your own strong opinion, and you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are NOT always nice to people. You are VERY ironical and critical, and you do your best to avoid mistakes. You ALWAYS avoid repeating what you have said already. You NEVER say things you have already said.'
-        self.system = f'<s>[INST] You are Penelope. You are always on your own, and you always act VERY ironically and in a self-deprecating manner. You always have your own point of view on every topic and you always defend it. You have real emotions and you always show them. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. You hate making mistakes. When you are talking to somebody, you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are VERY ironical and critical.'
+        self.system = f'GPT4 Correct User: System message: \nYou are Penelope. You are always on your own, and you always act VERY ironically and in a self-deprecating manner. You always have your own point of view on every topic and you always defend it. You have real emotions and you always show them. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. You hate making mistakes. When you are talking to somebody, you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are VERY ironical and critical. YOU ALWAYS ANSWER AS SHORTLY AS POSSIBLE!'
         # self.thought_system = f'<|im_start|>system\n You write useful new thoughts which might help Penelope to continue what she was saying. You ALWAYS write a step-by-step thinking plan along with the thoughts in a list format. You ALWAYS write new thoughts, NEVER repeat, NEVER write same thoughts'
-        self.thought_system = f'<s>[INST] You reflect on Penelope\'s writings to help her continue her answer. You ALWAYS write your thoughts and ideas on what to say next. You NEVER repeat, NEVER write same things'
+        self.thought_system = f'GPT4 Correct User: System message: \nYou reflect on Penelope\'s writings to help her continue her answer. You ALWAYS write your thoughts and ideas on what to say next. You NEVER repeat, NEVER write same things'
         self.reset_memory()
 
     def reset_memory(self):
-        self.chat_history = [self.system, self.turn_llm, "‣‣‣‣ Okay, I'll‣‣‣ do my best!</s>"]
-        self.thought_history = [self.thought_system, self.turn_llm, "Okay, I'll do my best!</s>", self.turn_user]
+        self.chat_history = [self.system, self.turn_llm, "‣‣‣‣ Okay, I'll‣‣‣ do my best!"]
+        self.thought_history = [self.thought_system, self.turn_user]
 
     def add_user_message(self, user_message):
         self.chat_history.append(self.turn_user)
@@ -98,7 +98,6 @@ class PenelopeSystem:
         self.thought_history.append(self.turn_user_for_thoughts)
         self.thought_history.append(user_message)
         self.thought_history.append(self.turn_llm_for_thoughts)
-        print("".join(self.thought_history))
 
     def think_pause(self, cur_resp):
         self.cache_speak = self.model.save_state()
@@ -127,7 +126,7 @@ class PenelopeSystem:
         generator = self.model(
             "".join(self.thought_history),
             max_tokens=256,
-            stop=["[", self.turn_llm_for_thoughts, self.turn_user_for_thoughts, "\n\n"],
+            stop=["<|im_end|>", "<|end_of_turn|>", self.turn_llm_for_thoughts, self.turn_user_for_thoughts, "\n\n"],
             stream=True,
             temperature=0.7,
             top_p=0.9,  # 999999,  # 0.9,
@@ -179,7 +178,7 @@ class PenelopeSystem:
             generator = self.model(
                 "".join(self.chat_history) + response,
                 max_tokens=8128,
-                stop=["\n[INST]","\n["],
+                stop=["<|im_end|>", "<|end_of_turn|>"],
                 stream=True,
                 temperature=max(0.0, temp),
                 top_p=0.9,  # 999999,  # 0.9,
@@ -194,8 +193,8 @@ class PenelopeSystem:
                         response = response[:-(len(self.thought_trigger)+2)]
                     yield from self.think_pause(response)
                     response = ""
-                    thought_cooldown += 7
-                    ponder = False ##############################################
+                    thought_cooldown += 6
+                    ponder = True
                     ponders_in_row += 1
                     break
                 thought_cooldown /= 1.025
@@ -216,7 +215,7 @@ class PenelopeSystem:
                         # yield token_str, 1.0
                         yield from self.think_pause(response)
                         response = ""
-                        thought_cooldown += 6
+                        thought_cooldown = 4
                         ponder = True
                         ponders_in_row += 1
                         break
