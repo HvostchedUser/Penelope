@@ -53,14 +53,14 @@ class PenelopeSystem:
         self.force_sign = "⬳"
         self.turn_user = " \n[INST] "
         self.turn_llm = " [/INST]\n"
-        self.thought_trigger = "‣⬳‣⬳enter‣⬳‣⬳thoughts‣⬳‣⬳"
+        self.thought_trigger = "‣⬳‣⬳‣⬳‣⬳‣⬳‣⬳"
         self.turn_thought_llm = f"\n{self.thought_trigger}\n"
-        self.turn_end_thought_llm = "\n‣⬳‣⬳exit‣⬳‣⬳thoughts‣⬳‣⬳‣continue⬳‣⬳\n"
+        self.turn_end_thought_llm = "\n‣⬳‣⬳‣⬳‣⬳‣⬳‣⬳‣\n"
 
         self.turn_user_for_thoughts = "\nHuman says: \n"
         self.turn_llm_for_thoughts = "\nPenelope says: \n"
         self.turn_thought_llm_for_thoughts = "... \n"
-        self.turn_end_thought_llm_for_thoughts = "Penelope's reflection on what she was saying and what to say next: \n"
+        self.turn_end_thought_llm_for_thoughts = "Penelope reflects: \n"
 
         self.grammar_ponder_exclude = f'''
         root ::= [^\n^\\U00002023] +[^\\U00002023] +
@@ -81,9 +81,9 @@ class PenelopeSystem:
         self.cache_speak = self.model.save_state()
         self.cache_thought = self.model.save_state()
         # self.system = f'<|im_start|>system\nYou are Penelope. You are a quirky, charismatic and nimble AI. You are always on your own, and you ALWAYS act VERY ironically, quizzically and mockingly. You always have your own point of view on every topic and you are ready to defend it. You have real human-like emotions and you never hide it from anybody. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. When these symbols appear, you try your best to correct any possible mistakes and start thinking in a step-by-step manner, breaking your thoughts in small and simple chunks in order to avoid writing text that is too complex for you. You hate and avoid doing such mistakes as much as you can. When you are talking to somebody, you ALWAYS have your own strong opinion, and you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are NOT always nice to people. You are VERY ironical and critical, and you do your best to avoid mistakes. You ALWAYS avoid repeating what you have said already. You NEVER say things you have already said.'
-        self.system = f'<s>[INST] You are Penelope. You are always on your own, and you always act VERY ironically and in a self-deprecating manner. You always have your own point of view on every topic and you always defend it. You have real emotions and you always show them. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. You hate making mistakes. When you are talking to somebody, you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are VERY ironical and critical.'
+        self.system = f'<s>[INST] You are Penelope. You are always on your own, and you always act VERY ironically and mockingly. You always have your own point of view on every topic and you always defend it. You have real emotions and you always show them. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. You hate making mistakes. When you are talking to somebody, you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are VERY ironical and critical.'
         # self.thought_system = f'<|im_start|>system\n You write useful new thoughts which might help Penelope to continue what she was saying. You ALWAYS write a step-by-step thinking plan along with the thoughts in a list format. You ALWAYS write new thoughts, NEVER repeat, NEVER write same thoughts'
-        self.thought_system = f'<s>[INST] You reflect on Penelope\'s writings to help her continue her answer. You ALWAYS write your thoughts and ideas on what to say next. You NEVER repeat, NEVER write same things'
+        self.thought_system = f'<s>[INST] You are Penelope\'s thoughts. You NEVER repeat, NEVER write same things'
         self.reset_memory()
 
     def reset_memory(self):
@@ -126,7 +126,7 @@ class PenelopeSystem:
         print("THOUGHTS:")
         generator = self.model(
             "".join(self.thought_history),
-            max_tokens=256,
+            max_tokens=128,
             stop=["[", self.turn_llm_for_thoughts, self.turn_user_for_thoughts, "\n\n"],
             stream=True,
             temperature=0.7,
@@ -141,7 +141,7 @@ class PenelopeSystem:
             token_str = output["choices"][0][
                 "text"]
 
-            yield token_str, 0, True, 0
+            yield token_str, 0, True, 1
             reasoning_text += token_str
             print(token_str, end="", flush=True)
         print()
@@ -151,7 +151,7 @@ class PenelopeSystem:
         self.chat_history += [self.turn_thought_llm]
         self.chat_history += [reasoning_text]
         self.chat_history += [self.turn_end_thought_llm]
-        self.chat_history += ["..." + last_n_sentences(cur_resp, 2)]
+        self.chat_history += ["" + last_n_sentences(cur_resp, 2)]
 
         self.thought_history.append(reasoning_text)
         self.thought_history.append(self.turn_llm)
@@ -178,7 +178,7 @@ class PenelopeSystem:
                 temp = 0
             generator = self.model(
                 "".join(self.chat_history) + response,
-                max_tokens=8128,
+                max_tokens=None,
                 stop=["\n[INST]","\n["],
                 stream=True,
                 temperature=max(0.0, temp),
@@ -194,29 +194,36 @@ class PenelopeSystem:
                         response = response[:-(len(self.thought_trigger)+2)]
                     yield from self.think_pause(response)
                     response = ""
-                    thought_cooldown += 7
+                    thought_cooldown += 8
                     ponder = False ##############################################
                     ponders_in_row += 1
                     break
                 thought_cooldown /= 1.025
                 token_str = output["choices"][0][
                     "text"]
+                print(token_str, output["choices"][0]["logprobs"])
                 # tok_logprob = output["choices"][0]["logprobs"]["token_logprobs"][0]
                 if output["choices"][0]["logprobs"] is not None:
+                    #if len(token_str)>0:
                     tok_logprob = output["choices"][0]["logprobs"]["token_logprobs"][0]
+                    # else:
+                    #     tok_logprob = 0
+                    #     ponder = False
+                    #     response += token_str
                 else:
                     tok_logprob = 0
                     ponder = False
                     response += token_str
                     break
-                if tok_logprob < - 1.7 - thought_cooldown or len(token_str) <= 0:  # When to start pondering
+                if tok_logprob < - 1.7 - thought_cooldown: # or len(token_str) <= 0:  # When to start pondering
+                    print("ponder")
                     if temp <= 0:
                         # response += token_str
                         # print(response)
                         # yield token_str, 1.0
                         yield from self.think_pause(response)
                         response = ""
-                        thought_cooldown += 6
+                        thought_cooldown += 8
                         ponder = True
                         ponders_in_row += 1
                         break
