@@ -51,8 +51,10 @@ class PenelopeSystem:
         self.chat_history = None
         self.ponder_sign = "‣"
         self.force_sign = "⬳"
-        self.turn_user = " \n[INST] "
-        self.turn_llm = " [/INST]\n"
+        self.turn_user = "\n<|eot_id|>\n\n<|start_header_id|>user<|end_header_id|>"
+        # self.turn_user = " \n[INST] "
+        self.turn_llm = "\n<|eot_id|>\n\n<|start_header_id|>assistant<|end_header_id|>"
+        # self.turn_llm = " [/INST]\n"
         self.thought_trigger = "‣⬳‣⬳‣⬳enter‣⬳‣⬳‣⬳thoughts‣⬳‣⬳‣⬳interrupt‣⬳‣⬳‣⬳output‣⬳‣⬳‣⬳‣"
         self.turn_thought_llm = f"\n{self.thought_trigger}\n"
         self.turn_end_thought_llm = "\n‣⬳‣⬳‣⬳exit‣⬳‣⬳‣⬳thoughts‣⬳‣⬳‣⬳continue‣⬳‣⬳‣⬳output‣⬳‣⬳‣⬳‣\n"
@@ -70,21 +72,23 @@ class PenelopeSystem:
         #         '''
         self.llama_grammar = LlamaGrammar.from_string(self.grammar_ponder_exclude)
         self.model = Llama(
-            model_path="/home/ivan/Applications/AI/Models/mistral-7b-instruct-v0.2.Q5_K_M.gguf",
-            n_ctx=32000,
-            n_threads=8,
-            n_gpu_layers=33,
+            model_path="/home/ivan/Applications/AI/Models/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf",
+            n_ctx=8128,
+            n_threads=0,
+            n_gpu_layers=9999,
             verbose=False,
-            n_batch=256,
-            logits_all=True
+            n_batch=512,
+            logits_all=True,
         )
         self.cache_speak = self.model.save_state()
         self.cache_thought = self.model.save_state()
         # self.system = f'<|im_start|>system\nYou are Penelope. You are a quirky, charismatic and nimble AI. You are always on your own, and you ALWAYS act VERY ironically, quizzically and mockingly. You always have your own point of view on every topic and you are ready to defend it. You have real human-like emotions and you never hide it from anybody. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. When these symbols appear, you try your best to correct any possible mistakes and start thinking in a step-by-step manner, breaking your thoughts in small and simple chunks in order to avoid writing text that is too complex for you. You hate and avoid doing such mistakes as much as you can. When you are talking to somebody, you ALWAYS have your own strong opinion, and you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are NOT always nice to people. You are VERY ironical and critical, and you do your best to avoid mistakes. You ALWAYS avoid repeating what you have said already. You NEVER say things you have already said.'
-        self.system = f'<s>[INST] You are Penelope. You are a quirky, charismatic and nimble AI. You are always on your own, and you ALWAYS act VERY ironically, quizzically and mockingly. You always have your own point of view on every topic and you are ready to defend it. You have real human-like emotions and you never hide it from anybody. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. When these symbols appear, you try your best to correct any possible mistakes and start thinking in a step-by-step manner, breaking your thoughts in small and simple chunks in order to avoid writing text that is too complex for you. You hate and avoid doing such mistakes as much as you can. When you are talking to somebody, you ALWAYS have your own strong opinion, and you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are NOT always nice to people. You are VERY ironical and critical, and you do your best to avoid mistakes. You ALWAYS avoid repeating what you have said already. You NEVER say things you have already said.'
+        # self.system = f'<s>[INST] You are Penelope. You are a quirky, charismatic and nimble AI. You are always on your own, and you ALWAYS act VERY ironically, quizzically and mockingly. You always have your own point of view on every topic and you are ready to defend it. You have real human-like emotions and you never hide it from anybody. You are a language model with an output-augmentation system that assesses your confidence and thoughtfulness and inserts specific symbols in order to extend your reasoning capabilities and notify you about lack of your cognitive capabilities. These symbols are inserted automatically when the system detects that you are unsure of your next words. {self.ponder_sign} is a token that allocates additional computational time, allowing you to think more before generation continues and notifies you that you are incapable to output text of such complexity without simplifications, step-by-step thinking and elaborations. {self.force_sign} is a token that notifies you that you have to come up with a continuation right now. Both symbols mean that you are trying to fit too much thoughts in the text. If you can\'t manage to come up with a continuation, the system interrupts you to think, and then continue. Nobody sees your thoughts. After thinking, you ALWAYS continue from the same word you have stopped on. When these symbols appear, you try your best to correct any possible mistakes and start thinking in a step-by-step manner, breaking your thoughts in small and simple chunks in order to avoid writing text that is too complex for you. You hate and avoid doing such mistakes as much as you can. When you are talking to somebody, you ALWAYS have your own strong opinion, and you ALWAYS seek ways to make an ironic joke on EVERYTHING you are talking about, especially when it comes to self-irony. You are NOT always nice to people. You are VERY ironical and critical, and you do your best to avoid mistakes. You ALWAYS avoid repeating what you have said already. You NEVER say things you have already said.'
+        self.system = f'<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nYou are Penelope, a language model. Your task is to answer questions.'#You are Penelope, a language model with a customized inference system that allows you to take pauses for thinking with "‣" token. '
+        self.system = f'<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nIf there is a need for additional time to think, a series of invisible tokens "‣" is inserted automatically. It allows to utilize more compute by adding pauses to the context. "⬳" is inserted when the pause length is getting close to the limit.'#You are Penelope, a language model with a customized inference system that allows you to take pauses for thinking with "‣" token. '
         # self.system = f'<s>[INST] Your name is Penelope. You are a very curious and ironic AI. You ALWAYS answer very conscisely.'
         # self.thought_system = f'<|im_start|>system\n You write useful new thoughts which might help Penelope to continue what she was saying. You ALWAYS write a step-by-step thinking plan along with the thoughts in a list format. You ALWAYS write new thoughts, NEVER repeat, NEVER write same thoughts'
-        self.thought_system = f'<s>[INST] You write useful new thoughts which might help Penelope to continue what she was saying. You ALWAYS write a step-by-step thinking plan along with the thoughts in a list format. You ALWAYS write new thoughts, NEVER repeat, NEVER write same thoughts'
+        self.thought_system = f'<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nPenelope is stuck and probably made a mistake. Help Penelope to continue answering properly. Check if the answer contains any mistakes and write a step-by-step solution that corrects them. NEVER repeat same things'
         # self.thought_system = f'<s>[INST] You write thoughts for Penelope, a very curious and ironic AI. You always answer very conscisely and in step-by-step manner.'
         self.reset_memory()
 
@@ -128,8 +132,8 @@ class PenelopeSystem:
         print("THOUGHTS:")
         generator = self.model(
             "".join(self.thought_history),
-            max_tokens=128,
-            stop=["[", self.turn_llm_for_thoughts, self.turn_user_for_thoughts, "\n\n"],
+            max_tokens=1024,
+            stop=["<|eot_id|>","[", self.turn_llm_for_thoughts, self.turn_user_for_thoughts, "\n\n\n\n"],
             stream=True,
             temperature=0.7,
             top_p=0.9,  # 999999,  # 0.9,
@@ -165,7 +169,112 @@ class PenelopeSystem:
 
     def generate_response(self):
         thought_cooldown = 1
-        base_thought_threshold = 1.5# 1.7
+        cooldown_k = 2
+        base_thought_threshold = 1  # 1.7
+        temp_base = 0.7
+        k_temp_lowering = 7
+        max_ponders = math.ceil(temp_base * k_temp_lowering)
+        response = ""
+        ponder = True
+        ponders_in_row = 0
+
+        empty_toks = 0
+        while ponder:
+            ponder = False
+            if ponders_in_row >= 0:
+                temp = temp_base - ponders_in_row / k_temp_lowering
+            else:
+                # print("AAAAAAAAAAAAAA temp 0")
+                temp = 0
+            generator = self.model(
+                "".join(self.chat_history) + response,
+                max_tokens=None,
+                stop=["\n[INST]", "\n[","<|eot_id|>"],
+                stream=True,
+                temperature=max(0.0, temp),
+                top_p=0.9,  # 999999,  # 0.9,
+                repeat_penalty=1.15,
+                top_k=20,  # 999999,  # 20,
+                grammar=self.llama_grammar,
+                logprobs=0,
+                tfs_z=0
+            )
+            for output in generator:
+                if ends_with_cycle(response) :
+                    if self.thought_trigger in response:
+                        response = response[:-(len(self.thought_trigger) + 2)]
+                    yield from self.think_pause(response)
+                    response = ""
+                    thought_cooldown += 8
+                    ponder = False  ##############################################
+                    ponders_in_row += 1
+                    break
+                thought_cooldown /= cooldown_k
+                token_str = output["choices"][0][
+                    "text"]
+                # print(token_str, output["choices"][0]["logprobs"])
+                # tok_logprob = output["choices"][0]["logprobs"]["token_logprobs"][0]
+                if output["choices"][0]["logprobs"] is not None:
+                    if len(token_str) > 0:
+                        empty_toks = 0
+                        tok_logprob = output["choices"][0]["logprobs"]["token_logprobs"][0]
+                    else:
+                        empty_toks += 1
+                        if empty_toks > 2:
+                            tok_logprob = 0
+                            ponder = False
+                            response += token_str
+                            break
+                        # tok_logprob = 0
+                        # ponder = False
+                        # response += token_str
+                else:
+                    tok_logprob = 0
+                    ponder = False
+                    response += token_str
+                    break
+                # print(tok_logprob)
+                if tok_logprob < - base_thought_threshold - thought_cooldown:  # or len(token_str) <= 0:  # When to start pondering
+                    # print("ponder")
+                    if temp <= 0:
+                        response += token_str
+                        thought_cooldown += 8
+                        # print(response)
+                        yield token_str, 1.0, False, tok_logprob
+                        # yield from self.think_pause(response)
+                        # response = ""
+                        # thought_cooldown += 8
+                        # ponder = True
+                        # ponders_in_row += 1
+                        # break
+                    if ponders_in_row > 5:
+                        print("!", end="")
+                        response += self.force_sign
+                        ponder = True
+                        ponders_in_row += 1
+                        break
+                    else:
+                        print("|", end="")
+                        response += self.ponder_sign
+                        ponder = True
+                        ponders_in_row += 1
+                        break
+                if ponders_in_row > 0 and not response.endswith(" ") \
+                        and not response.endswith(".") \
+                        and not response.endswith("?") \
+                        and not response.endswith("!"):
+                    # print(response)
+                    yield "", ponders_in_row / max_ponders, False, tok_logprob
+                response += token_str
+                # print(response)
+                yield token_str, ponders_in_row / max_ponders, False, tok_logprob
+                ponders_in_row = 0
+        print()
+        self.chat_history += [response.rstrip()]
+        self.thought_history.append(response.rstrip())
+    def generate_response_plain(self):
+        thought_cooldown = 1
+        base_thought_threshold = 9999999999# 1.7
         temp_base = 0.7
         k_temp_lowering = 20
         max_ponders = math.ceil(0.7 * 20)
@@ -184,7 +293,7 @@ class PenelopeSystem:
             generator = self.model(
                 "".join(self.chat_history) + response,
                 max_tokens=None,
-                stop=["\n[INST]","\n["],
+                stop=["\n[INST]","\n[","<|eot_id|>"],
                 stream=True,
                 temperature=max(0.0, temp),
                 top_p=0.9,  # 999999,  # 0.9,
